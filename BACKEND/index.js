@@ -3,10 +3,12 @@ import mongoose from "mongoose";
 import connectdb from "./Config/Mongodb.js";
 import cors from "cors";
 import UserRouter from "./routes/user.routes.js";
+import cookieParser from "cookie-parser";
 const app = express();
 const port = 5000;
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 //connected database
 await connectdb();

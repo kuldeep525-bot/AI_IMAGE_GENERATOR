@@ -4,18 +4,17 @@ import jwt from "jsonwebtoken";
 import validator from "validator";
 
 const JWT_SECURE_PASSWORD = "USER1234";
+const NODE_ENV = "development";
 
 // REGISTER USER
 const registerUser = async (req, res) => {
   try {
     const { fullname, email, password } = req.body;
 
-    // Check missing details
     if (!fullname || !email || !password) {
       return res.json({ success: false, message: "Missing details" });
     }
 
-    // Validate email
     if (!validator.isEmail(email)) {
       return res.json({
         success: false,
@@ -23,7 +22,6 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Validate strong password
     if (!validator.isStrongPassword(password)) {
       return res.json({
         success: false,
@@ -32,19 +30,16 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Hash password
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.json({ success: false, message: "Email already registered" });
+    }
+
     const hashPassword = await bcrypt.hash(password, 10);
 
-    // Save user
-    const newUser = new User({
-      fullname,
-      email,
-      password: hashPassword,
-    });
-
+    const newUser = new User({ fullname, email, password: hashPassword });
     const userSave = await newUser.save();
 
-    // Create JWT token
     const token = jwt.sign({ id: userSave._id }, JWT_SECURE_PASSWORD, {
       expiresIn: "1d",
     });
@@ -66,22 +61,28 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res.json({ success: false, message: "User does not exist" });
     }
 
-    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.json({ success: false, message: "Invalid password" });
     }
 
-    // Generate token
     const token = jwt.sign({ id: user._id }, JWT_SECURE_PASSWORD, {
       expiresIn: "1d",
     });
+
+    const cookieOption = {
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      secure: NODE_ENV === "production",
+      sameSite: "Strict",
+    };
+
+    res.cookie("jwt", token, cookieOption);
 
     res.json({
       success: true,
@@ -95,4 +96,14 @@ const loginUser = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser };
+// LOGOUT USER
+const logoutUser = async (req, res) => {
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "Strict",
+    secure: NODE_ENV === "production",
+  });
+  res.json({ success: true, message: "Logged out successfully" });
+};
+
+export { registerUser, loginUser, logoutUser };

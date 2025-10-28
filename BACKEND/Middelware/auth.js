@@ -1,63 +1,56 @@
 import jwt from "jsonwebtoken";
-const jwt_user_password = "Ai_Image_Generator";
+
+const JWT_SECURE_PASSWORD = "Ai_Image_Generator"; // keep same as in controller
 
 const authUser = async (req, res, next) => {
-  const { token } = req.header;
-  if (!token) {
-    return res.json({ success: false, message: "Not authorized Login again" });
-  }
-
   try {
-    const token_decode = jwt.verify(token, jwt_user_password);
-    if (token_decode.id) {
-      req.body.userId = token_decode.id;
-    } else {
-      return res.json({
+    console.log("========== AUTH DEBUG ==========");
+    console.log("Headers received:", req.headers);
+
+    // 1️⃣ Extract the Authorization header
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) {
+      return res.status(401).json({
         success: false,
-        message: "Not authorized Login again",
+        message: "No Authorization header found",
       });
     }
 
+    // 2️⃣ Ensure it starts with Bearer
+    if (!authHeader.startsWith("Bearer ")) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Authorization format. It should start with 'Bearer '",
+      });
+    }
+
+    // 3️⃣ Extract the token
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Token missing after Bearer",
+      });
+    }
+
+    console.log("Token extracted:", token);
+
+    // 4️⃣ Verify token
+    const decoded = jwt.verify(token, JWT_SECURE_PASSWORD);
+    console.log("Decoded token:", decoded);
+
+    // 5️⃣ Store user ID in req.user (works for GET too)
+    req.user = { id: decoded.id };
+
+    // 6️⃣ Continue
     next();
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.log("JWT Verification Error:", error.message);
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token",
+    });
   }
 };
 
 export default authUser;
-
-// import jwt from "jsonwebtoken";
-// const jwt_user_password = "Ai_Image_Generator";
-
-// const authUser = async (req, res, next) => {
-//   try {
-//     // ✅ 1. Get token from header
-//     const authHeader = req.header("Authorization");
-
-//     // ✅ 2. Check if token exists
-//     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-//       return res.json({
-//         success: false,
-//         message: "Not authorized. Login again.",
-//       });
-//     }
-
-//     // ✅ 3. Extract token (remove 'Bearer ')
-//     const token = authHeader.split(" ")[1];
-
-//     // ✅ 4. Verify token using your secret key
-//     const decoded = jwt.verify(token, jwt_user_password);
-
-//     // ✅ 5. Add userId to req.body for use in next functions
-//     req.body.userId = decoded.id;
-
-//     // ✅ 6. Continue to next middleware or route
-//     next();
-//   } catch (error) {
-//     console.log(error);
-//     res.json({ success: false, message: "Invalid or expired token" });
-//   }
-// };
-
-// export default authUser;

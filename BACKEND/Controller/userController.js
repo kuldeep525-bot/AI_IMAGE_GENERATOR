@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import validator from "validator";
 
-const JWT_SECURE_PASSWORD = "USER1234";
+const JWT_SECURE_PASSWORD = "Ai_Image_Generator";
 const NODE_ENV = "development";
 
 // REGISTER USER
@@ -106,4 +106,22 @@ const logoutUser = async (req, res) => {
   res.json({ success: true, message: "Logged out successfully" });
 };
 
-export { registerUser, loginUser, logoutUser };
+//credit
+const userCredit = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    res.json({
+      success: true,
+      credits: user.CreditBalance,
+      user: { fullname: user.fullname },
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export { registerUser, loginUser, logoutUser, userCredit };

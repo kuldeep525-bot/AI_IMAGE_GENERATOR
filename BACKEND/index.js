@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import connectdb from "./Config/Mongodb.js";
 import cors from "cors";
 import UserRouter from "./routes/user.routes.js";
+import ImageRoute from "./routes/ImageRoute.js";
 import cookieParser from "cookie-parser";
 const app = express();
 const port = 5000;
@@ -14,6 +15,7 @@ app.use(cookieParser());
 await connectdb();
 
 app.use("/api/user", UserRouter);
+app.use("/api/image", ImageRoute);
 
 app.get("/", (req, res) => {
   res.send("Welcome to the site");

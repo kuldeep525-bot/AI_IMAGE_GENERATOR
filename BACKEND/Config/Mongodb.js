@@ -5,9 +5,9 @@ const connectdb = async () => {
     await mongoose.connect(
       "mongodb+srv://bachelor97797_db_user:NMgmde4Vx32fFdSK@clustor0.h5tciwb.mongodb.net/AI_IMAGE_GENRATOR"
     );
-    console.log("✅ DB connected successfully");
+    console.log(" DB connected successfully");
   } catch (error) {
-    console.error("❌ Database connection failed:", error.message);
+    console.error(" Database connection failed:", error.message);
     process.exit(1);
   }
 };

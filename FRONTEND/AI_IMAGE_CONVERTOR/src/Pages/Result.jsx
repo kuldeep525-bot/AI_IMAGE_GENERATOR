@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { assets } from "../assets/assets";
 import { delay, motion } from "motion/react";
+import { useContext } from "react";
+import { AppContext } from "../context/AppContext";
 
 function Result() {
   const [image, setImage] = useState(assets.sample_img_2);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState("");
+  const {generateImage}=useContext(AppContext)
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);

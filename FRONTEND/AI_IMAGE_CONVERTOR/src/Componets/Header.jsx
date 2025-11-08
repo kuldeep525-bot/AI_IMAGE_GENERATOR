@@ -6,7 +6,6 @@ import { AppContext } from '../context/AppContext'
 import { useNavigate } from 'react-router-dom'
 
 const Header = () => {
-
   const {user, setShowLogin} = useContext(AppContext)
   const navigate = useNavigate()
 

@@ -7,29 +7,29 @@ const Clip_Drop_Api =
 
 export const generateImage = async (req, res) => {
   try {
-    const { UserID, prompt } = req.body;
-    const user = await User.findById(UserID);
+    const { prompt } = req.body;
+    const user = await User.findById(req.user.id); // ✅ correct property
 
     if (!user || !prompt) {
       return res.json({ success: false, message: "Missing Details" });
     }
 
-    if (user.CreditBalance === 0 || User.CreditBalance < 0) {
+    if (user.CreditBalance <= 0) {
+      // ✅ clean check
       return res.json({
         success: false,
         message: "No Credit Balance",
-        CreditBalance: User.CreditBalance,
+        CreditBalance: user.CreditBalance,
       });
     }
+
     const formdata = new FormData();
     formdata.append("prompt", prompt);
 
-    //used api for generate image
     const { data } = await axios.post(
       "https://clipdrop-api.co/text-to-image/v1",
       formdata,
       {
-        method: "POST",
         headers: {
           "x-api-key": Clip_Drop_Api,
         },
@@ -39,12 +39,14 @@ export const generateImage = async (req, res) => {
 
     const base64Image = Buffer.from(data, "binary").toString("base64");
     const resultImage = `data:image/png;base64,${base64Image}`;
+
     await User.findByIdAndUpdate(user._id, {
       CreditBalance: user.CreditBalance - 1,
     });
+
     res.json({
       success: true,
-      message: "image generated successfully",
+      message: "Image generated successfully",
       CreditBalance: user.CreditBalance - 1,
       resultImage,
     });

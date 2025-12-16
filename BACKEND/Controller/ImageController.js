@@ -8,14 +8,13 @@ const Clip_Drop_Api =
 export const generateImage = async (req, res) => {
   try {
     const { prompt } = req.body;
-    const user = await User.findById(req.user.id); // ✅ correct property
+    const user = await User.findById(req.user.id);
 
     if (!user || !prompt) {
       return res.json({ success: false, message: "Missing Details" });
     }
 
     if (user.CreditBalance <= 0) {
-      // ✅ clean check
       return res.json({
         success: false,
         message: "No Credit Balance",
